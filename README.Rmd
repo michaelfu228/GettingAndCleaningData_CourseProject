@@ -1,0 +1,12 @@
+---
+title: "README"
+author: "Michael Fu"
+date: "10/4/2020"
+output: html_document
+---
+
+Thank you for reviewing my project. 
+
+The CodeBook.md R markdown document will exlain how my script works to achieve the tidy data sets - one being an extracted data set for each observation in the experiment, when the other being a summary data set with the average of each variable available in the extracted data set. 
+
+You can also review my script using the run_analysis.R file.
