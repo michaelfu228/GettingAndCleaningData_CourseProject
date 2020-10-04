@@ -1,0 +1,92 @@
+---
+title: "GettingAndCleaningDataProject"
+author: "Michael Fu"
+date: "10/4/2020"
+output: html_document
+---
+
+## Code Book for the Getting and Cleaning Data Project
+
+The below is to create a directory for storing files involved in this project
+```
+if (!dir.exists("./GettingAndCleaningDataProject")) {
+    dir.create("./GettingAndCleaningDataProject")
+}
+setwd("./GettingAndCleaningDataProject")
+```
+
+Now I'll start with downloading the data files in a zipped folder format, and unzip the folder
+```
+data_url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+download.file(data_url, "data_file.zip")
+unzip("data_file.zip")
+```
+
+Reading the text files for features and activity labels into R as tables
+```
+features <- read.table("UCI HAR Dataset/features.txt")
+activity_labels <- read.table("UCI HAR Dataset/activity_labels.txt")
+```
+
+Reading text files related to the test group of subjects into R - giving the columns proper descriptive names
+```
+dataTestX <- read.table("UCI HAR Dataset/test/X_test.txt")
+names(dataTestX) <- features[,2]
+dataTestY <- read.table("UCI HAR Dataset/test/y_test.txt")
+names(dataTestY) <- "activity"
+dataTestSubject <- read.table("UCI HAR Dataset/test/subject_test.txt")
+names(dataTestSubject) <- "subject"
+dataTest <- cbind(dataTestSubject, dataTestY, dataTestX)
+dataTest$subjectType <- "Test"
+```
+
+Reading text files related to the train group of subjects into R - giving the columns proper descriptive names
+```
+dataTrainX <- read.table("UCI HAR Dataset/train/X_train.txt")
+names(dataTrainX) <- features[,2]
+dataTrainY <- read.table("UCI HAR Dataset/train/y_train.txt")
+names(dataTrainY) <- "activity"
+dataTrainSubject <- read.table("UCI HAR Dataset/train/subject_train.txt")
+names(dataTrainSubject) <- "subject"
+dataTrain <- cbind(dataTrainSubject, dataTrainY, dataTrainX)
+dataTrain$subjectType <- "Train"
+```
+
+This is to merge the data from test group and train group by combining the rows
+```
+fullData <- rbind(dataTest, dataTrain)
+```
+
+Extract only the mean & standard deviation for each measurement
+```
+meanStdColN <- grep("mean\\()|std\\()", names(fullData))
+extractedData <- fullData[,c(1:2, meanStdColN)]
+```
+
+
+Rename the activity column with descrptive names instead of codes
+```
+extractedData$activity <- activity_labels[,2][extractedData$activity]
+```
+
+Making sure all columns are with descriptive variable names
+```
+names(extractedData) <- gsub("^t", "time", names(extractedData))
+names(extractedData) <- gsub("^f", "frequency", names(extractedData))
+names(extractedData) <- gsub("Acc", "Accelerometer", names(extractedData))
+names(extractedData) <- gsub("Gyro", "Gyroscope", names(extractedData))
+names(extractedData) <- gsub("Mag", "Magnitude", names(extractedData))
+names(extractedData) <- gsub("BodyBody", "Body", names(extractedData))
+```
+
+Create a summary dataset with average of each variable
+```
+library(dplyr)
+summaryData <- group_by(extractedData, subject, activity)
+summaryData <- summarise_at(summaryData, 1:66, mean)
+```
+
+This last piece of code is to return the working directory to what it was before running the above
+```
+setwd("./..")
+```
